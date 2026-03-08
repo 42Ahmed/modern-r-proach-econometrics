@@ -7,9 +7,9 @@ This digital book serves as a comprehensive computational companion to Jeffrey W
 ### About the Author
 I am **Ahmed H. Darwish**, a Teaching Assistant with a Bachelor’s degree in Business Administration, majoring in **Applied Statistics**. Currently, I am pursuing my Master’s degree and conducting research in the field of econometrics. 
 
-My work focuses on:
-* **Applied Econometrics:** Replicating complex academic models to ensure reproducibility.
-* **Causal Inference:** Applying modern frameworks from "The Effect" to real-world data.
+My work focuses on:  
+* **Applied Econometrics:** Replicating complex academic models to ensure reproducibility.  
+* **Causal Inference:** Applying modern frameworks from "The Effect" to real-world data.  
 * **Open Source Contribution:** I am a contributor to the `wooldridge` Python library, and I bring that same rigor to this R-based project.
 
 
