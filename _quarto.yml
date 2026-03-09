@@ -4,6 +4,11 @@ project:
 book:
   title: "A Modern R-proach to Econometrics"
   author: "Ahmed H. Darwish"
+  
+  navbar:
+    title: false
+    search: true
+      
   chapters:
     - index.qmd
     - chapter01.qmd
@@ -38,3 +43,5 @@ format:
       light: cosmo
       dark: darkly
     toc: true
+    sidebar:
+      style: floating
