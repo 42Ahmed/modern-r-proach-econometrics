@@ -56,18 +56,20 @@ If the absolute estimate is at least \*\*twice as large\*\* as its standard erro
 
 > (ii) In terms of the parameters, state the null hypothesis that a 1% increase in A’s expenditures is offset by a 1% increase in B’s expenditures.
 
-**Interpretation:** $$
-\begin{align}
+**Interpretation:**
+
+\$\$\begin{align}
 H_0&: \beta_1 + \beta_2 = 0\\
 H_1 &: \beta_1 + \beta_2 \neq 0
-\end{align}
-$$
+\end{align}\$\$
 
 > (iii) Estimate the given model using the data in VOTE1 and report the results in usual form. Do A’s expenditures affect the outcome? What about B’s expenditures? Can you use these results to test the hypothesis in part (ii)?
 
 **Interpretation:**
 
-All the independent variables are statistically significant, indicating that $\beta \neq 0$. We still can't test the hypothesis from part 2 because we don't have the covariance needed $$ 
+All the independent variables are statistically significant, indicating that $\beta \neq 0$. We still can't test the hypothesis from part 2 because we don't have the covariance needed
+
+$$ 
 se(\hat \beta_1 + \hat \beta_2) = \sqrt{Var(\hat \beta_1) + Var(\hat \beta_2) + 2 Cov(\hat \beta_1, \hat \beta_2)}
 $$
 
@@ -77,7 +79,9 @@ The easy way:
 
 ```{r}
 #| label: c1_iv
-linearHypothesis(model_vote1, "lexpendA + lexpendB = 0")
+joint_test <- linearHypothesis(model_vote1,
+                               "lexpendA + lexpendB = 0")
+print(joint_test)
 ```
 
 **Interpretation:**
@@ -92,8 +96,7 @@ voteA &= \beta_0 + \beta_1 \log(expendA) + \beta_2 \log(expendB) + \beta_3 prtys
 voteA &= \beta_0 + (\theta - \beta_2) \log(expendA) + \beta_2 \log(expendB) + \beta_3 prtystrA + u \\
 voteA &= \beta_0 + \theta \log(expendA) - \beta_2 \log(expendA) + \beta_2 \log(expendB) + \beta_3 prtystrA + u \\
 voteA &= \beta_0 + \theta \log(expendA) + \beta_2[\log(expendB) - \log(expendA)]   + \beta_3 prtystrA + u 
-\end{align}
-$$
+\end{align}$$
 
 ```{r}
 #| label: c1_iv_2
@@ -123,3 +126,85 @@ modelsummary(
 $\theta = -0.53$, with a p-value of 0.32. We fail to reject the null hypothesis. This implies that $\beta_1$ and $\beta_2$ perfectly offset each other; if both candidates double their budgets, the net effect on the election outcome is practically zero.
 
 ### C2 \[LAWSCH85\]
+
+```{r}
+#| label: c2_data
+df_lawsch85 <- wooldridge::lawsch85
+knitr::kable(head(df_lawsch85))
+```
+
+> (i) State and test the null hypothesis that the rank of law schools has no ceteris paribus effect on median starting salary. $$ \log(salary) = \beta_0 + \beta_1 LSAT + \beta_2 GPA + \beta_3 \log(libvol) + \beta_4 \log(cost) + \beta_5 rank + u $$
+
+**Interpretation:**
+
+$$H_0: \beta_5 = 0\\
+H_1: \beta_5 \neq 0$$
+
+```{r}
+#| label: c2_i
+model_lawschl85 <- lm(
+  lsalary ~ LSAT + GPA + llibvol + lcost + rank,
+  data = df_lawsch85)
+
+modelsummary(
+  model_lawschl85,
+  shape = term ~ model + statistic,
+  fmt = 3,
+  estimate = "{estimate}{stars}",
+  statistic = c("std.error", "statistic", "p.value"),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  coef_rename = c(
+    "(Intercept)" = "Constant",
+    "LSAT"        = "LSAT Score",
+    "GPA"         = "Undergrad GPA",
+    "llibvol"     = "Log(Library Volumes)",
+    "lcost"       = "Log(Annual Cost)",
+    "rank"        = "Law School Rank"
+  )
+)
+
+ 
+```
+
+**Interpretation:**
+
+Law School Rank is estimated to have a coefficient of -0.003 with a very low p value indicating rejection of null hypothesis. Moving down one spot in the law school rankings (e.g., from 10th to 11th) is associated with an estimated 0.3% reduction in median starting salary, holding all else constant.
+
+> \(ii\) Are features of the incoming class of students—namely, LSAT and GPA—individually or jointly significant for explaining salary?
+
+```{r}
+#| label: c2_ii
+joint_test <- linearHypothesis(model_lawschl85,
+                               c("LSAT = 0", "GPA = 0"))
+
+print(joint_test)
+```
+
+**Interpretation:**
+
+Individually, GPA is highly significant while LSAT is not (likely due to collinearity with school rank). However, the joint F-test yields a highly significant p-value, meaning we reject the null hypothesis; together, the incoming class characteristics are jointly significant.
+
+> \(iii\) Test whether the size of the entering class (clsize) or the size of the faculty (faculty) needs to be added to this equation; carry out a single test
+
+```{r}
+#| label: c2_iii
+model_unrestricted <- lm(
+  lsalary ~ LSAT + GPA + llibvol + lcost + rank + clsize + faculty, 
+  data = df_lawsch85
+)
+
+joint_test <- linearHypothesis(model_unrestricted, c("clsize = 0", "faculty = 0"))
+print(joint_test)
+```
+
+**Interpretation:**
+
+Restricted model shows no significant difference from unrestricted model (p = 0.39). We fail to reject the null hypothesis, class size and faculty provide no additional explanatory power
+
+> \(iv\) What factors might influence the rank of the law school that are not included in the salary regression?
+
+**Interpretation:**
+
+Unobserved factors absorbed by the rank variable might include the school's geographic location, the strength of its alumni network, and the socioeconomic background of the student body (such as family income or father's occupation)
+
+### C3 \[HPRICE1\]
