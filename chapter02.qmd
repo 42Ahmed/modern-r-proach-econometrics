@@ -170,11 +170,9 @@ For every 100 minutes worked, 15 minutes of sleep are lost.
 
 ```{r}
 #| label: c3_ii
-new_data <- data.frame(totwrk = 120)
-prediction <- predict(model_sleep75, newdata = new_data)
+sleep_fall <- coef(model_sleep75)["totwrk"] * 120
 
-result <- model_sleep75$coefficients[1]
-paste(round(prediction, 2), round(prediction - result, 2))
+paste("Estimated change in sleep:", round(sleep_fall, 2), "minutes")
 ```
 **Interpretation:**\  
-Working an extra two hours per week will reduce weekly sleep by **18** minutes [2.6 minutes per night]. This is practically insignficant.
+Working an extra two hours per week will reduce weekly sleep by **18** minutes [2.6 minutes per night]. This is practically insignificant.
