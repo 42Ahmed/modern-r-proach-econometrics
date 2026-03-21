@@ -2,3 +2,102 @@
 title: "Multiple Regression Analysis: Further Issues"
 format: html
 ---
+
+## Computer Exercises
+
+```{r}
+#| label: 'setup'
+#| include: false
+library(tidyverse)
+library(wooldridge)
+library(modelsummary)
+library(car)
+library(broom)
+library(ggcorrplot)
+```
+
+### C1 \[KIELMC\]
+
+```{r}
+df_1981 <- kielmc |>
+  filter(year == 1981)
+knitr::kable(head(df_1981))
+```
+
+> (i) Estimate and interpret the equation $$\log(price) = \beta_0 + \beta_1 \log(dist) + u$$ What sign do you expect for $\beta_1$ where dist is distance from incinderator location
+
+```{r}
+#| label: c1_i
+model_c1_i <- lm(lprice ~ ldist, data = df_1981)
+
+modelsummary(
+  model_c1_i,
+  fmt = 2, 
+  shape = term ~ model + statistic,
+  estimate = "{estimate}{stars}",
+  statistic = c("std.error", "statistic", "p.value"),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  coef_rename = c(
+    "(Intercept)" = "Constant",
+    "ldist"    = "Distance from Incinerator"
+  )
+)
+```
+
+**Interpretation:**
+
+Incinerator omits wastes that should reduce house prices. $\beta_1$ is expected to have a positive effect. $\beta_1$ = 0.36, for each **1%** increase in distance from incinerator, prices are expected to increase by **0.36%**. The result is statistically significant supporting the theory that proximity to the incinerator negatively affects property value. The estimate may be biased if its correlated with other omitted factors.
+
+> (ii) add the variables log(intst), log(area), log(land), rooms, baths, and age.
+
+```{r}
+#| label: c1_ii
+model_c1_ii <- lm(
+  lprice ~ ldist + lintst + larea + lland +
+    rooms + baths + age,
+  data = df_1981
+)
+
+modelsummary(
+  model_c1_ii,
+  fmt = 2, 
+  shape = term ~ model + statistic,
+  estimate = "{estimate}{stars}",
+  statistic = c("std.error", "statistic", "p.value"),
+  gof_map = c("nobs", "r.squared", "adj.r.squared"),
+  coef_rename = c(
+    "(Intercept)" = "Constant",
+    "ldist"    = "Distance from Incinerator",
+    "lintst"   = "Distance from Interstate",
+    "larea"    = "Square Footage of House",
+    "lland"    = "Lot size",
+    "rooms"    = "Number of Rooms",
+    "baths"    = "Number of Bathrooms",
+    "age"      = "Age of House in Years"
+  )
+)
+```
+
+```{r}
+#| label: c1_ii_2
+#| warning: false
+#| message: false
+df_1981_sub <- df_1981|>
+  select(c("ldist","lintst", "lprice", "age", "rooms", "larea", "lland", "baths"))
+
+corr_matrix <- cor(df_1981_sub, use = "complete.obs")
+
+ggcorrplot(corr_matrix, 
+           hc.order = TRUE, 
+           type = "lower",
+           lab = TRUE, 
+           title = "Correlation Matrix (1981 Housing Data)")
+```
+
+**Interpretation:**
+
+In the multiple regression model, the coefficient for distance to the incinerator ($\beta_1$) shrinks considerably and becomes statistically insignificant. The large, significant estimate observed in the simple model was heavily driven by omitted variable bias; distance from the incinerator is positively correlated with other desirable, price-increasing characteristics, such as larger lot sizes and closer proximity to the interstate. By including these controls, the isolated effect of the incinerator is revealed to be much smaller. Furthermore, the fact that these newly added spatial variables also lack individual statistical significance strongly suggests multicollinearity. The model struggles to disentangle the individual marginal effects of these highly correlated geographic features, resulting in inflated standard errors.
+
+> (iii) Add $[\log(intst)]^2}$ to the model, what do you conclude?
+
+> (iv) Is square of $\log(dist)$ significant when you add it to model from part (iii)?

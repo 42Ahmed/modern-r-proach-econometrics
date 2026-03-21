@@ -51,7 +51,9 @@ ggplot( data = model_lwage, aes(x = .resid)) +
   geom_histogram(bins = 30)
 ```
 
-**Interpretation:** Residuals of the log wage model seem symmetric with few outliers.
+**Interpretation:**
+
+Residuals of the log wage model seem symmetric with few outliers.
 
 > (iii) Would you say that Assumption MLR.6 is closer to being satisfied for the level-level model or the log-level model?
 
