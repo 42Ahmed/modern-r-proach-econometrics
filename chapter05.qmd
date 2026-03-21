@@ -151,8 +151,62 @@ se_sub <- tidy(model_gpa2_sub) |>
 print(se_sub / se_full)
 ```
 
-**Interpretation:** The ratio is **1.3** which is close to $\sqrt 2 = 1.414$ coming from $$SE(\hat \beta_j) = \frac{\hat \sigma}{\sqrt{SST_j(1-R^2_j)}}$$
+**Interpretation:**
 
-Decreasing sample size by half reduced SST by half so SE increases by a factor of $\sqrt 2$
+The ratio is approximately 1.3. This is close to the theoretical penalty of $\sqrt{2} \approx 1.414$. The penalty is not exactly 1.414 because while subsetting the data cut $SST_j$ roughly in half, it also caused slight fluctuations in the residual variance ($\hat{\sigma}$) and the variable's collinearity ($R^2_j$). $$SE(\hat \beta_j) = \frac{\hat \sigma}{\sqrt{SST_j(1-R^2_j)}}$$
 
 ### C3 \[BWGHT\]
+
+```{r}
+#| label: c3_data
+df_bwght <- wooldridge::bwght
+knitr::kable(head(df_bwght))
+```
+
+> compute the LM statistic for testing whether motheduc and fatheduc are jointly significant. $$\begin{align}bwght =& \beta_0 + \beta_1 cigs + \beta_2 parity + \beta_3 faminc \\&+ \beta_4 motheduc + \beta_5 fatheduc + u\end{align}$$
+
+**The Math Way:**
+
+To do Lagrange Multiplier Test:
+
+1.  Filter the data from missing data
+2.  Estimate the restricted model
+3.  Extract the residuals $\tilde u$
+4.  Regress $\tilde u$ on all independent variables
+5.  Extract $R^2_u$ and $n$
+6.  $LM = n \cdot R^2_u$
+7.  $LM \sim \chi^2_q$ where q is number of restrictions
+
+```{r}
+#| label: c3_i
+df_clean <- df_bwght |>
+  drop_na(bwght, cigs, parity, faminc, motheduc, fatheduc)
+
+model_r <- lm(bwght ~ cigs + parity + faminc,
+              data = df_clean)
+
+df_clean$u_tilde <- resid(model_r)
+
+model_aux <- lm(
+  u_tilde ~ cigs + parity + faminc + motheduc + fatheduc,
+  data = df_clean)
+
+n <- nobs(model_aux)
+r2_aux <- summary(model_aux)$r.squared
+
+lm_stat <- n * r2_aux
+p_val <- pchisq(lm_stat, df = 2, lower.tail = FALSE)
+
+cat("LM Statistic: ", lm_stat, "\n")
+cat("P-value:      ", p_val, "\n")
+```
+
+**Interpretation:**
+
+Calculated LM Statistic is 2.8 with p value 0.24. We fail to reject the null hypothesis; education is not jointly statistically significant.
+
+::: callout-important
+If we wanted to test if education = 0.5 not just zero, we will modify y from step two
+
+`df_clean <- df_clean |>  mutate(bwght_tilde = bwght - (0.5 * motheduc) - (0.5 * fatheduc))`
+:::
